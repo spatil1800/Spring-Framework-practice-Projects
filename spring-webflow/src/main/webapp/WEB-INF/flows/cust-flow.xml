@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/webflow
+        http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+	<var name="customer" class="com.sj.webflow.pizza.Customer"/>
+	<var name="pizzaFlowActions" class="com.sj.webflow.pizza.PizzaFlowActions"/>
+	<view-state id="welcome" view="welcome">
+	<transition on="phoneEntered" to="validatePhone"></transition>
+	</view-state>
+	
+	<action-state id="validatePhone">
+	<evaluate result="customer" expression="pizzaFlowActions.validateCustomer(requestParameters.PhoneNo)"></evaluate>
+	<transition on-exception="java.lang.Exception" to="regForm"></transition>
+	<transition to="addCustomer"></transition>
+	</action-state>
+	
+	<view-state id="regForm" model="customer" view="register">
+		<on-entry>
+			<set name="customer.phoneNo" value="requestParameters.PhoneNo"></set>
+		</on-entry>
+		<transition on="submit" to="checkDelivery"></transition>
+	</view-state>
+	
+	<decision-state id="checkDelivery">
+		<if then="addCustomer" else="deliveryWarning" test="pizzaFlowActions.checkDelivery(customer.getPincode())"/>
+	</decision-state>
+	
+	<action-state id="addCustomer">
+	<evaluate expression="pizzaFlowActions.addCustomer(customer)"></evaluate>
+	<transition to="customerReady"></transition>
+	</action-state>
+	
+	<view-state id="deliveryWarning" view="deliveryWarning">
+	<transition on="accept" to="customerReady"></transition>
+	</view-state>
+	
+	<end-state id="cancel"></end-state>
+	<end-state id="customerReady">
+	<output name="customer"/>
+	</end-state>
+	<global-transitions>
+		<transition on="cancel" to="cancel"></transition>
+	</global-transitions>
+</flow>
